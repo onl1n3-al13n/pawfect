@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Draw-Me Flipbook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f8f8f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #flipbook {
+      width: 420px;
+      height: 600px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/stpageflip@2.0.6/dist/css/stpageflip.min.css" />
+</head>
+<body>
+  <div id="flipbook"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stpageflip@2.0.6/dist/js/stpageflip.min.js"></script>
+  <script>
+    const pdfPath = "https://drive.google.com/uc?export=download&id=1qlDBcS24hBUDQkfk5muvNSi51b-uKEWT";
+
+    const container = document.getElementById("flipbook");
+
+    const flipbook = new St.PageFlip(container, {
+      width: 420,
+      height: 600,
+      size: "fixed",
+      minWidth: 315,
+      minHeight: 420,
+      maxWidth: 1000,
+      maxHeight: 1350,
+      maxShadowOpacity: 0.5,
+      showCover: false,
+      mobileScrollSupport: false,
+      swipeOrientation: "vertical"
+    });
+
+    async function renderPDF() {
+      const pdf = await pdfjsLib.getDocument(pdfPath).promise;
+      const pages = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        pages.push(canvas);
+      }
+      flipbook.loadFromImages(pages.map(canvas => canvas.toDataURL()));
+    }
+
+    renderPDF();
+  </script>
+</body>
+</html>
